@@ -1,5 +1,9 @@
 # In-Did
 
+# 지켜야 할 명세
+- 커밋 로그, 브랜치 작성
+  : prefix로 이슈명 (DP-1 등) 붙이면서 작성
+
 # 버젼
 - node 12.22.1 사용 (바로 다운받지 말고 nvm 다운받아서 노드 버전 관리하는 것을 추천)
 - indy-sdk 1.15.0-dev-1628 사용하므로, libindy도 완전히 동일하게 다운받아야한다.
@@ -25,5 +29,25 @@ npm install -g node-gyp
 npm i
 ```
 
-- 커밋 로그, 브랜치 작성
-: prefix로 이슈명 (DP-1 등) 붙이면서 작성
+
+# indy-node 연동 
+- 로컬 테스트 환경 구축 위함
+
+## 미리 해야될 것
+1. 도커 설치
+
+## 과정
+1. /config/indy-pool.dockerfile 을 통해 도커 이미지 생성
+2. 만든 이미지를 통해 컨테이너 생성 및 실행
+3. 실제 환경 구축에 관해서는 
+   - /indy-template/write-did-and-query-verkey/writeDidAndQueryVerkey.js 여기 부분 참조하면서 진행하면 될듯.
+
+```shell
+$ docker build -f config/indy-pool.dockerfile -t indy_pool . # 이미지생성
+$ docker run --name indy_pool -itd -p 9701-9708:9701-9708 indy_pool # 컨테이너 생성
+
+$ npm rum leder:start  # 컨테이너 실행 (package.json 확인) 
+$ npm run leder:stop   # 컨테이너 종료 (package.json 확인)
+```
+
+
