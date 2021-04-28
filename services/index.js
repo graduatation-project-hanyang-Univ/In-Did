@@ -4,10 +4,12 @@ const utils = require('./utils');
 const did = require('./did');
 const pool = require('./pool');
 const wallet = require('./wallet');
+const ledger = require('./ledger');
 
 module.exports = {
   utils,
   did,
   pool,
   wallet,
+  ledger,
 };
