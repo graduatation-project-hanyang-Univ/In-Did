@@ -14,6 +14,17 @@ async function buildAttribRequest(options) {
   return indy.buildAttribRequest(submitterDid, targetDid, hash, raw, enc);
 }
 
+/** SCHEMA 트랜잭션 생성  * */
+async function buildSchemaRequest(options) {
+  const { submitterDid, data } = options;
+  return indy.buildSchemaRequest(submitterDid, data);
+}
+
+async function buildCredDefRequest(options) {
+  const { submitterDid, data } = options;
+  return indy.buildCredDefRequest(submitterDid, data);
+}
+
 /** 생성한 트랜잭션을 indy-node에 전송 * */
 async function signAndSubmitRequest(options) {
   const { poolHandle, walletHandle, submitterDid, request } = options;
@@ -24,5 +35,7 @@ async function signAndSubmitRequest(options) {
 module.exports = {
   buildNymRequest,
   buildAttribRequest,
+  buildSchemaRequest,
+  buildCredDefRequest,
   signAndSubmitRequest,
 };
