@@ -16,10 +16,23 @@ async function createWallet(config, credentials) {
 
 /** 생성한 지갑에 접근 * */
 async function openWallet(config, credentials) {
-  return indy.openWallet(config, credentials);
+  const path = `${utils.getIndyStoragePath()}/wallets`;
+
+  return indy.openWallet(
+    {
+      storage_config: { path },
+      ...config,
+    },
+    credentials,
+  );
+}
+
+async function closeWallet(walletHandle) {
+  return indy.closeWallet(walletHandle);
 }
 
 module.exports = {
   createWallet,
   openWallet,
+  closeWallet,
 };
