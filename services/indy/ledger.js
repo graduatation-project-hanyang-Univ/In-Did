@@ -7,6 +7,13 @@ async function buildNymRequest(options) {
   return indy.buildNymRequest(submitterDid, targetDid, verkey, alias, role);
 }
 
+/** GET_NYM 요청 생성 * */
+async function buildGetNymRequest(options) {
+  const { submitterDid, targetDid } = options;
+
+  return indy.buildGetNymRequest(submitterDid, targetDid);
+}
+
 /** ATTRIB 트랜잭션 생성 * */
 async function buildAttribRequest(options) {
   const { submitterDid, targetDid, hash, raw, enc } = options;
@@ -32,10 +39,18 @@ async function signAndSubmitRequest(options) {
   return indy.signAndSubmitRequest(poolHandle, walletHandle, submitterDid, request);
 }
 
+async function submitRequest(options) {
+  const { poolHandle, request } = options;
+
+  return indy.submitRequest(poolHandle, request);
+}
+
 module.exports = {
   buildNymRequest,
+  buildGetNymRequest,
   buildAttribRequest,
   buildSchemaRequest,
   buildCredDefRequest,
   signAndSubmitRequest,
+  submitRequest,
 };

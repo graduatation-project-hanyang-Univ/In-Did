@@ -15,7 +15,12 @@ async function getPoolHandle() {
   return indy.openPoolLedger(process.env.POOL_NAME);
 }
 
+async function closePoolLedger(poolHandle) {
+  return indy.closePoolLedger(poolHandle);
+}
+
 module.exports = {
   createGenesisLedger,
   getPoolHandle,
+  closePoolLedger,
 };

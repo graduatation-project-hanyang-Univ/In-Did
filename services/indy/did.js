@@ -21,9 +21,14 @@ async function setEndpointForDid(walletHandle, did, address, transportKey) {
   indy.setEndpointForDid(walletHandle, did, address, transportKey);
 }
 
+async function listMyDidsWithMeta(walletHandle) {
+  return indy.listMyDidsWithMeta(walletHandle);
+}
+
 module.exports = {
   createAndStoreMyDid,
   replaceKeysStart,
   replaceKeysApply,
   setEndpointForDid,
+  listMyDidsWithMeta,
 };
