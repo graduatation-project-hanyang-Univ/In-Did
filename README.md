@@ -52,8 +52,8 @@ npm i
 $ docker build -f config/indy-pool.dockerfile -t indy_pool . # 이미지생성
 $ docker run --name indy_pool -itd -p 9701-9708:9701-9708 indy_pool # 컨테이너 생성
 
-$ npm rum leder:start  # 컨테이너 실행 (package.json 확인) 
-$ npm run leder:stop   # 컨테이너 종료 (package.json 확인)
+$ npm run ledger:start  # 컨테이너 실행 (package.json 확인) 
+$ npm run ledger:stop   # 컨테이너 종료 (package.json 확인)
 ```
 
 
