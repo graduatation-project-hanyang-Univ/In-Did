@@ -6,6 +6,8 @@ const pool = require('./pool');
 const wallet = require('./wallet');
 const ledger = require('./ledger');
 const RevocationRegistry = require('./revocation_registry');
+const VcIssuer = require('./vc_issuer');
+const VcUser = require('./vc_user');
 
 module.exports = {
   utils,
@@ -14,4 +16,6 @@ module.exports = {
   wallet,
   ledger,
   RevocationRegistry,
+  VcIssuer,
+  VcUser,
 };
