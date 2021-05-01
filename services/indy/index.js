@@ -5,6 +5,7 @@ const did = require('./did');
 const pool = require('./pool');
 const wallet = require('./wallet');
 const ledger = require('./ledger');
+const RevocationRegistry = require('./revocation_registry');
 
 module.exports = {
   utils,
@@ -12,4 +13,5 @@ module.exports = {
   pool,
   wallet,
   ledger,
+  RevocationRegistry,
 };
