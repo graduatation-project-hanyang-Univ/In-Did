@@ -45,6 +45,28 @@ async function submitRequest(options) {
   return indy.submitRequest(poolHandle, request);
 }
 
+/** Revocation registry 등록을 위한 트랜잭션 생성  * */
+async function buildRevocRegDefRequest(options) {
+  const { submitterDid, data } = options;
+
+  return indy.buildRevocRegDefRequest(submitterDid, data);
+}
+
+/** VC 폐기를 위한 트랜잭션 생성 * */
+async function buildRevocRegEntryRequest(options) {
+  const { submitterDid, revocRegDefId, revDefType, value } = options;
+
+  return indy.buildRevocRegEntryRequest(submitterDid, revocRegDefId, revDefType, value);
+}
+
+/** issuer의 credential definition을 요청하는 트랜잭션 생성
+ *  전송은 submitRequest로 (vc-user)* */
+async function buildGetCredDefRequest(options) {
+  const { submitterDid, id } = options;
+
+  return indy.buildGetCredDefRequest(submitterDid, id);
+}
+
 module.exports = {
   buildNymRequest,
   buildGetNymRequest,
@@ -53,4 +75,7 @@ module.exports = {
   buildCredDefRequest,
   signAndSubmitRequest,
   submitRequest,
+  buildRevocRegDefRequest,
+  buildRevocRegEntryRequest,
+  buildGetCredDefRequest,
 };
