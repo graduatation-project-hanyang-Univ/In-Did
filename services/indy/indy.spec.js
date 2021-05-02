@@ -1,6 +1,6 @@
 const indy = require('./index');
 
-describe('DID 관련 테스트', () => {
+describe('테스트', () => {
   let poolHandle;
   const stewardSeed = '000000000000000000000000Steward1';
 
@@ -13,7 +13,7 @@ describe('DID 관련 테스트', () => {
   });
 
   test('지갑 생성 테스트', async () => {
-    const config = { id: 'test_wallet3' };
+    const config = { id: 'test_wallet5' };
     const credentials = { key: 'test_wallet_key' };
 
     await indy.wallet.createWallet(config, credentials);
@@ -22,7 +22,7 @@ describe('DID 관련 테스트', () => {
   });
 
   test('DID 확인 테스트', async () => {
-    const config = { id: 'test_wallet3' };
+    const config = { id: 'test_wallet4' };
     const credentials = { key: 'test_wallet_key' };
     const walletHandle = await indy.wallet.openWallet(config, credentials);
 
@@ -30,9 +30,9 @@ describe('DID 관련 테스트', () => {
     console.log(list);
   });
 
-  test('DID 및 DID document 생성 테스트', async () => {
+  test('DID 및 DID document 생성 및 인증키 변경 테스트', async () => {
     /** 지갑 열기 * */
-    const config = { id: 'test_wallet' };
+    const config = { id: 'test_wallet4' };
     const credentials = { key: 'test_wallet_key' };
     const walletHandle = await indy.wallet.openWallet(config, credentials);
     // console.log(walletHandle);
@@ -48,7 +48,7 @@ describe('DID 관련 테스트', () => {
     // console.log(endorserDid, endorserVerKey);
 
     /** NYM 트랜잭션 생성 * */
-    const nymRequest = await indy.ledger.buildNymRequest({
+    let nymRequest = await indy.ledger.buildNymRequest({
       submitterDid: stewardDid,
       targetDid: endorserDid,
       verkey: endorserVerkey,
@@ -58,7 +58,7 @@ describe('DID 관련 테스트', () => {
     // console.log(nymRequest);
 
     /** 서명 및 indy-node에 제출 * */
-    const nymResult = await indy.ledger.signAndSubmitRequest({
+    let nymResult = await indy.ledger.signAndSubmitRequest({
       poolHandle,
       walletHandle,
       submitterDid: stewardDid,
@@ -66,7 +66,7 @@ describe('DID 관련 테스트', () => {
     });
     // console.log(nymResult);
 
-    /** 클라이언트 역할용 DID 생성 * */
+    /** 클라이언트 역할용 DID 생성 (검색용으로, 실제 노드에 반영 X) * */
     const [clientDid, clientVerkey] = await indy.did.createAndStoreMyDid(walletHandle, {});
     // console.log(clientDid, clientVerkey);
 
@@ -81,6 +81,30 @@ describe('DID 관련 테스트', () => {
       request: getNymRequest,
     });
     // console.log(getNymResponse);
+
+    /** Endorser DID 인증키 변경 * */
+    // 대체 인증 생성 -> apply 전에는 딱 한번만 실행 가능 (왜그런지는 잘 모름...)
+    const newVerkey = await indy.did.replaceKeysStart(walletHandle, endorserDid, {});
+    // console.log(newVerkey);
+
+    // NYM 리퀘스트 만들어서 노드에 반영
+    nymRequest = await indy.ledger.buildNymRequest({
+      submitterDid: endorserDid,
+      targetDid: endorserDid,
+      verkey: newVerkey,
+      alias: undefined,
+      role: 'TRUST_ANCHOR',
+    });
+
+    nymResult = await indy.ledger.signAndSubmitRequest({
+      poolHandle,
+      walletHandle,
+      submitterDid: endorserDid,
+      request: nymRequest,
+    });
+    // console.log(nymResult);
+    // 변경한 인증키를 지갑에 반영
+    await indy.did.replaceKeysApply(walletHandle, endorserDid);
 
     await indy.wallet.closeWallet(walletHandle);
   });
