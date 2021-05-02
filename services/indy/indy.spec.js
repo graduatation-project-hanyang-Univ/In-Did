@@ -108,4 +108,80 @@ describe('테스트', () => {
 
     await indy.wallet.closeWallet(walletHandle);
   });
+
+  describe('Schema 생성 및 Credential Definition 생성', () => {
+    const issuerDid = 'Ax5BNed9CRETKWTVNxNef9';
+    /** 지갑 열기 * */
+    const config = { id: 'test_wallet4' };
+    const credentials = { key: 'test_wallet_key' };
+    let walletHandle;
+
+    beforeAll(async () => {
+      walletHandle = await indy.wallet.openWallet(config, credentials);
+    });
+
+    afterAll(async () => {
+      await indy.wallet.closeWallet(walletHandle);
+    });
+
+    test('Schema 생성 테스트 - 같은 버전으론 한 번만 가능', async () => {
+      const [id, schema] = await indy.anoncreds.issuerCreateSchema({
+        issuerDid,
+        name: 'schema_test',
+        version: '1.3',
+        attrNames: ['age', 'sex', 'height', 'name'],
+      });
+      // console.log(id, '\n', schema);
+
+      const schemaRequest = await indy.ledger.buildSchemaRequest({
+        submitterDid: issuerDid,
+        data: schema,
+      });
+      console.log(schemaRequest);
+
+      const schemaResponse = await indy.ledger.signAndSubmitRequest({
+        poolHandle,
+        walletHandle,
+        submitterDid: issuerDid,
+        request: schemaRequest,
+      });
+      console.log(id, schemaResponse);
+    });
+
+    test('Credential Definition 생성 테스트', async () => {
+      const schema = {
+        id: '32', // 해당 스케마 트랜잭션의 sequence 넘버 넣어야 한다.
+        ver: '1.0', // 고정인듯?
+        name: 'schema_test', // 왜넣는지 모름
+        version: '1.3', // 왜넣는지 모름
+        attrNames: ['age', 'sex', 'height', 'name'], // 왜넣는지 모름
+      };
+
+      const [credDefId, credDef] = await indy.anoncreds.issuerCreateAndStoreCredentialDef({
+        walletHandle,
+        issuerDid,
+        schema,
+        tag: 'test_tag',
+        signatureType: 'CL',
+        config: {
+          support_revocation: false,
+        },
+      });
+      // console.log(credDefId, credDef);
+
+      const credDefRequest = await indy.ledger.buildCredDefRequest({
+        submitterDid: issuerDid,
+        data: credDef,
+      });
+      // console.log(credDefRequest);
+
+      const credDefResult = await indy.ledger.signAndSubmitRequest({
+        poolHandle,
+        walletHandle,
+        submitterDid: issuerDid,
+        request: credDefRequest,
+      });
+      // console.log(credDefResult);
+    });
+  });
 });
