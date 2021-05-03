@@ -27,6 +27,12 @@ async function buildSchemaRequest(options) {
   return indy.buildSchemaRequest(submitterDid, data);
 }
 
+/** SCHEMA 트랜잭션 조회 * */
+async function buildGetSchemaRequest(options) {
+  const { submitterDid, id } = options;
+  return indy.buildGetSchemaRequest(submitterDid, id);
+}
+
 async function buildCredDefRequest(options) {
   const { submitterDid, data } = options;
   return indy.buildCredDefRequest(submitterDid, data);
@@ -72,6 +78,7 @@ module.exports = {
   buildGetNymRequest,
   buildAttribRequest,
   buildSchemaRequest,
+  buildGetSchemaRequest,
   buildCredDefRequest,
   signAndSubmitRequest,
   submitRequest,

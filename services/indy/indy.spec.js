@@ -128,7 +128,7 @@ describe('테스트', () => {
       const [id, schema] = await indy.anoncreds.issuerCreateSchema({
         issuerDid,
         name: 'schema_test',
-        version: '1.3',
+        version: '1.4',
         attrNames: ['age', 'sex', 'height', 'name'],
       });
       // console.log(id, '\n', schema);
@@ -146,6 +146,24 @@ describe('테스트', () => {
         request: schemaRequest,
       });
       console.log(id, schemaResponse);
+    });
+
+    test('Schema 조회 테스트', async () => {
+      const id = 'Ax5BNed9CRETKWTVNxNef9:2:schema_test:1.4';
+
+      const getSchemaRequest = await indy.ledger.buildGetSchemaRequest({
+        submitterDid: issuerDid,
+        id,
+      });
+      console.log(getSchemaRequest);
+
+      const getSchemaResponse = await indy.ledger.signAndSubmitRequest({
+        poolHandle,
+        walletHandle,
+        submitterDid: issuerDid,
+        request: getSchemaRequest,
+      });
+      console.log(getSchemaResponse); // seqNo 필드가 null이 아닌 경우에 Schema가 존재하는 것인듯.
     });
 
     test('Credential Definition 생성 테스트', async () => {
@@ -167,13 +185,13 @@ describe('테스트', () => {
           support_revocation: false,
         },
       });
-      // console.log(credDefId, credDef);
+      console.log(credDefId, credDef);
 
       const credDefRequest = await indy.ledger.buildCredDefRequest({
         submitterDid: issuerDid,
         data: credDef,
       });
-      // console.log(credDefRequest);
+      console.log(credDefRequest);
 
       const credDefResult = await indy.ledger.signAndSubmitRequest({
         poolHandle,
@@ -181,7 +199,25 @@ describe('테스트', () => {
         submitterDid: issuerDid,
         request: credDefRequest,
       });
-      // console.log(credDefResult);
+      console.log(credDefResult);
+    });
+
+    test('Credential Definition 조회 테스트', async () => {
+      const id = 'Ax5BNed9CRETKWTVNxNef9:3:CL:32:test_tag';
+
+      const getCreDefRequest = await indy.ledger.buildGetCredDefRequest({
+        submitterDid: issuerDid,
+        id,
+      });
+      console.log(getCreDefRequest);
+
+      const getCredDefResponse = await indy.ledger.signAndSubmitRequest({
+        poolHandle,
+        walletHandle,
+        submitterDid: issuerDid,
+        request: getCreDefRequest,
+      });
+      console.log(getCredDefResponse);
     });
   });
 });
