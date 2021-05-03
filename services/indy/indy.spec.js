@@ -185,13 +185,13 @@ describe('테스트', () => {
           support_revocation: false,
         },
       });
-      // console.log(credDefId, credDef);
+      console.log(credDefId, credDef);
 
       const credDefRequest = await indy.ledger.buildCredDefRequest({
         submitterDid: issuerDid,
         data: credDef,
       });
-      // console.log(credDefRequest);
+      console.log(credDefRequest);
 
       const credDefResult = await indy.ledger.signAndSubmitRequest({
         poolHandle,
@@ -199,7 +199,25 @@ describe('테스트', () => {
         submitterDid: issuerDid,
         request: credDefRequest,
       });
-      // console.log(credDefResult);
+      console.log(credDefResult);
+    });
+
+    test('Credential Definition 조회 테스트', async () => {
+      const id = 'Ax5BNed9CRETKWTVNxNef9:3:CL:32:test_tag';
+
+      const getCreDefRequest = await indy.ledger.buildGetCredDefRequest({
+        submitterDid: issuerDid,
+        id,
+      });
+      console.log(getCreDefRequest);
+
+      const getCredDefResponse = await indy.ledger.signAndSubmitRequest({
+        poolHandle,
+        walletHandle,
+        submitterDid: issuerDid,
+        request: getCreDefRequest,
+      });
+      console.log(getCredDefResponse);
     });
   });
 });
