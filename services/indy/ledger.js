@@ -73,6 +73,10 @@ async function buildGetCredDefRequest(options) {
   return indy.buildGetCredDefRequest(submitterDid, id);
 }
 
+async function parseGetCredDefResponse(getCredDefResponse) {
+  return indy.parseGetCredDefResponse(getCredDefResponse);
+}
+
 module.exports = {
   buildNymRequest,
   buildGetNymRequest,
@@ -85,4 +89,5 @@ module.exports = {
   buildRevocRegDefRequest,
   buildRevocRegEntryRequest,
   buildGetCredDefRequest,
+  parseGetCredDefResponse,
 };

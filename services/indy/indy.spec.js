@@ -221,3 +221,107 @@ describe('테스트', () => {
     });
   });
 });
+
+describe('VC 생성 테스트', () => {
+  let walletHandle;
+  let poolHandle;
+  let credOffer;
+
+  const issuerDid = 'Ax5BNed9CRETKWTVNxNef9';
+  const credDefId = 'Ax5BNed9CRETKWTVNxNef9:3:CL:32:test_tag';
+  const config = { id: 'test_wallet4' };
+  const credentials = { key: 'test_wallet_key' };
+
+  beforeAll(async () => {
+    poolHandle = await indy.pool.getPoolHandle();
+    walletHandle = await indy.wallet.openWallet(config, credentials);
+
+    // issuer 관점에서 미리 credOffer 생성해두는 코드
+    credOffer = await indy.anoncreds.issuerCreateCredentialOffer({
+      walletHandle,
+      credDefId,
+    });
+  });
+
+  afterAll(async () => {
+    await indy.wallet.closeWallet(walletHandle);
+    await indy.pool.closePoolLedger(poolHandle);
+  });
+
+  test('VC 요청 생성 테스트 - issuer == prover 인 경우로 테스팅', async () => {
+    // 1. master secret (현재 link secret) 생성 - prover
+    const outMasterSecretId = await indy.anoncreds.proverCreateMasterSecret({
+      walletHandle,
+    });
+    console.log('outMasterSecretId\n', outMasterSecretId);
+
+    // 2. 미리만들어놓은 credOffer 이용해 credDef 가져오기 - prover
+    const getCredDefRequest = await indy.ledger.buildGetCredDefRequest({
+      id: credOffer.cred_def_id,
+    });
+    console.log('getCredDefRequest\n', getCredDefRequest);
+
+    const getCredDefResponse = await indy.ledger.submitRequest({
+      poolHandle,
+      request: getCredDefRequest,
+    });
+    console.log('getCredDefResponse\n', getCredDefResponse);
+
+    const [, credDef] = await indy.ledger.parseGetCredDefResponse(getCredDefResponse);
+    console.log('credDef\n', credDef);
+
+
+    // 3. VC 발급 요청 데이터를 생성 - prover
+    const [credReq, credReqMetadata] = await indy.anoncreds.proverCreateCredentialReq({
+      walletHandle,
+      proverDid: issuerDid,
+      credOffer,
+      credDef,
+      masterSecretId: outMasterSecretId,
+    });
+    console.log('credReq\n', credReq);
+    console.log('credReqMetadata\n', credReqMetadata);
+
+    /** 이 부분 안됨 - revocation 부분 관련해서 먼저 해줘야 하는 게 있는 듯. * */
+    // 4. VC 생성 - issuer
+    // const [cred,credRevocId,revocRegDelta] = await indy.anoncreds.issuerCreateCredential({
+    //   walletHandle,
+    //   credOffer,
+    //   credReq,
+    //   credValues: {
+    //     age: {
+    //       raw: 20,
+    //       encoded: '20',
+    //     },
+    //     sex: {
+    //       raw: 1,
+    //       encoded: '1',
+    //     },
+    //     height: {
+    //       raw: 180,
+    //       encoded: '180',
+    //     },
+    //     name: {
+    //       raw: 1,
+    //       encoded: '1',
+    //     },
+    //   },
+    //   revReqId: undefined,
+    //   blobStorageReaderHandle: undefined,
+    // });
+    // console.log(cred);
+
+
+    // 5. VC 저장 - prover
+    // const outCredId = await indy.anoncreds.proverStoreCredential({
+    //   walletHandle,
+    //   credId: undefined,
+    //   credReqMetadata,
+    //   cred, // 채워져야 함,
+    //   credDef,
+    //   revRegDef, // 채워져야 함
+    // });
+    // console.log(outCredId);
+
+  });
+});
