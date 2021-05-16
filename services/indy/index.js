@@ -6,6 +6,7 @@ const pool = require('./pool');
 const wallet = require('./wallet');
 const ledger = require('./ledger');
 const anoncreds = require('./anoncreds');
+const blobStorage = require('./blob-storage');
 
 module.exports = {
   utils,
@@ -14,4 +15,5 @@ module.exports = {
   wallet,
   ledger,
   anoncreds,
+  blobStorage,
 };
