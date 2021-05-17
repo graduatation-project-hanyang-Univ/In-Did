@@ -30,6 +30,17 @@ describe('테스트', () => {
     console.log(list);
   });
 
+  test('VC 확인 테스트', async () => {
+    const config = { id: 'test_wallet4' };
+    const credentials = { key: 'test_wallet_key' };
+    const walletHandle = await indy.wallet.openWallet(config, credentials);
+
+    const list = await indy.anoncreds.proverGetCredentials({
+      walletHandle,
+    });
+    console.log(list);
+  });
+
   test('DID 및 DID document 생성 및 인증키 변경 테스트', async () => {
     /** 지갑 열기 * */
     const config = { id: 'test_wallet4' };
@@ -277,6 +288,26 @@ describe('VC Revocation Registry 생성', () => {
     });
     console.log('revocRegDefResponse\n', revocRegDefResponse);
   });
+
+  test('네트워크에 반영된 revocRegDef 정보 가져와서 파싱', async () => {
+    const revocRegDefId = 'Ax5BNed9CRETKWTVNxNef9:4:Ax5BNed9CRETKWTVNxNef9:3:CL:32:test_tag_support_revocation:CL_ACCUM:test_revocation_registry';
+    const getRevocRegDefRequest = await indy.ledger.buildGetRevocRegDefRequest({
+      submitterDid: issuerDid,
+      id: revocRegDefId,
+    });
+    console.log('getRevocRegDefRequest\n', getRevocRegDefRequest);
+
+    const getRevocRegDefResponse = await indy.ledger.submitRequest({
+      poolHandle,
+      request: getRevocRegDefRequest,
+    });
+    console.log(getRevocRegDefResponse);
+
+    const [, revocRegDef] = await indy.ledger.parseGetRevocRegDefResponse(getRevocRegDefResponse);
+    console.log('revocRegDefId\n', revocRegDefId);
+    console.log('revocRegDef\n', revocRegDef);
+  });
+
 });
 
 describe('VC 생성 테스트', () => {
@@ -285,9 +316,11 @@ describe('VC 생성 테스트', () => {
   let credOffer;
 
   const issuerDid = 'Ax5BNed9CRETKWTVNxNef9';
-  const credDefId = 'Ax5BNed9CRETKWTVNxNef9:3:CL:32:test_tag';
+  const credDefId = 'Ax5BNed9CRETKWTVNxNef9:3:CL:32:test_tag_support_revocation';
+  // const credDefId = 'Ax5BNed9CRETKWTVNxNef9:3:CL:32:test_tag';
   const config = { id: 'test_wallet4' };
   const credentials = { key: 'test_wallet_key' };
+  const revRegId = 'Ax5BNed9CRETKWTVNxNef9:4:Ax5BNed9CRETKWTVNxNef9:3:CL:32:test_tag_support_revocation:CL_ACCUM:test_revocation_registry';
 
   beforeAll(async () => {
     poolHandle = await indy.pool.getPoolHandle();
@@ -338,43 +371,66 @@ describe('VC 생성 테스트', () => {
     console.log('credReq\n', credReq);
     console.log('credReqMetadata\n', credReqMetadata);
 
+    const tailsReaderHandle = await indy.blobStorage.openBlobStorageReader('default', {
+      base_dir: `${indy.utils.getIndyStoragePath()}/tails`,
+      uri_pattern: '',
+    });
+    console.log('tailsReaderHandle \n', tailsReaderHandle);
+
     /** 이 부분 안됨 - revocation 부분 관련해서 먼저 해줘야 하는 게 있는 듯. * */
-    // 4. VC 생성 - issuer
+    // 5. VC 생성 - issuer
     const [cred, credRevocId, revocRegDelta] = await indy.anoncreds.issuerCreateCredential({
       walletHandle,
       credOffer,
       credReq,
       credValues: {
         age: {
-          raw: 20,
+          raw: '20',
           encoded: '20', // 인코딩을 인디에서 자체적으로 처리해주지 않음. IS-786?
         },
         sex: {
-          raw: 1,
+          raw: '1',
           encoded: '1',
         },
         height: {
-          raw: 180,
-          encoded: '180',
+          raw: '190',
+          encoded: '190',
         },
         name: {
-          raw: 1,
+          raw: '1',
           encoded: '1',
         },
       },
-      // revReqId: null,
-      blobStorageReaderHandle: 0,
+      revRegId,
+      blobStorageReaderHandle: tailsReaderHandle,
     });
     console.log('cred\n', cred);
 
-    // 5. VC 저장 - prover
+    // 6. revRegDef 가져오기
+    const getRevocRegDefRequest = await indy.ledger.buildGetRevocRegDefRequest({
+      submitterDid: issuerDid,
+      id: revRegId,
+    });
+    console.log('getRevocRegDefRequest\n', getRevocRegDefRequest);
+
+    const getRevocRegDefResponse = await indy.ledger.submitRequest({
+      poolHandle,
+      request: getRevocRegDefRequest,
+    });
+    console.log('getRevocRegDefResponse\n', getRevocRegDefResponse);
+
+    const [, revocRegDef] = await indy.ledger.parseGetRevocRegDefResponse(getRevocRegDefResponse);
+    console.log('revocRegDef\n', revocRegDef);
+
+    // 7. VC 저장 - prover
+    // 현재 안됨 (issuer와 prover가 같으면 안되는건가? 해봐야할듯)
     // const outCredId = await indy.anoncreds.proverStoreCredential({
     //   walletHandle,
     //   credId: undefined,
     //   credReqMetadata,
-    //   cred, // 채워져야 함,
+    //   cred,
     //   credDef,
-    //   revRegDef, // 채워져야 함
+    //   revRegDef: revocRegDef,
     // });
     // console.log(outCredId);
   });
