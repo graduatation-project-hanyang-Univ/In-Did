@@ -64,6 +64,12 @@ async function proverStoreCredential(options) {
   return indy.proverStoreCredential(walletHandle, credId, credReqMetadata, cred, credDef, revRegDef);
 }
 
+async function proverGetCredentials(options) {
+  const { walletHandle, filter } = options;
+
+  return indy.proverGetCredentials(walletHandle, filter);
+}
+
 module.exports = {
   issuerCreateSchema,
   issuerCreateAndStoreCredentialDef,
@@ -74,4 +80,5 @@ module.exports = {
   proverCreateMasterSecret,
   proverCreateCredentialReq,
   proverStoreCredential,
+  proverGetCredentials,
 };

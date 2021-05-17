@@ -73,8 +73,18 @@ async function buildGetCredDefRequest(options) {
   return indy.buildGetCredDefRequest(submitterDid, id);
 }
 
+async function buildGetRevocRegDefRequest(options) {
+  const { submitterDid, id } = options;
+
+  return indy.buildGetRevocRegDefRequest(submitterDid, id);
+}
+
 async function parseGetCredDefResponse(getCredDefResponse) {
   return indy.parseGetCredDefResponse(getCredDefResponse);
+}
+
+async function parseGetRevocRegDefResponse(getRevocRegDefResponse) {
+  return indy.parseGetRevocRegDefResponse(getRevocRegDefResponse);
 }
 
 module.exports = {
@@ -89,5 +99,7 @@ module.exports = {
   buildRevocRegDefRequest,
   buildRevocRegEntryRequest,
   buildGetCredDefRequest,
+  buildGetRevocRegDefRequest,
   parseGetCredDefResponse,
+  parseGetRevocRegDefResponse,
 };
