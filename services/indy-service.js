@@ -188,12 +188,78 @@ async function getCredDef(poolHandle, walletHandle, options) {
   };
 }
 
+async function createRevocationRegistry(poolHandle, walletHandle, options) {
+  const { issuerDid, credDefId, maxCredNum } = options;
+
+  const tailsWriterHandle = await indy.blobStorage.openBlobStorageWriter('default', {
+    base_dir: `${indy.utils.getIndyStoragePath()}/tails`,
+    uri_pattern: '',
+  });
+  // console.log('tailsWriterHandle \n', tailsWriterHandle);
+
+  const [revocRegId, revocRegDef, revocRegEntry] = await indy.anoncreds.issuerCreateAndStoreRevocReg({
+    walletHandle,
+    issuerDid,
+    revocDefType: null,
+    tag: 'test_revocation_registry',
+    credDefId,
+    config: {
+      max_cred_num: maxCredNum,
+    },
+    tailsWriterHandle,
+  });
+  // console.log('revocReqId\n', revocRegId);
+  // console.log('revocReqDef\n', revocRegDef);
+  // console.log('revocRegEntry\n', revocRegEntry);
+
+  const revocRegDefRequest = await indy.ledger.buildRevocRegDefRequest({
+    submitterDid: issuerDid,
+    data: revocRegDef,
+  });
+  // console.log('revocRegDefRequest\n', revocRegDefRequest);
+
+  const revocRegDefResponse = await indy.ledger.signAndSubmitRequest({
+    poolHandle,
+    walletHandle,
+    submitterDid: issuerDid,
+    request: revocRegDefRequest,
+  });
+  // console.log('revocRegDefResponse\n', revocRegDefResponse);
+
+  return revocRegId;
+}
+
+async function getRevocRegDef(poolHandle, walletHandle, options) {
+  const { issuerDid, revocRegDefId } = options;
+
+  const getRevocRegDefRequest = await indy.ledger.buildGetRevocRegDefRequest({
+    submitterDid: issuerDid,
+    id: revocRegDefId,
+  });
+  // console.log('getRevocRegDefRequest\n', getRevocRegDefRequest);
+
+  const getRevocRegDefResponse = await indy.ledger.submitRequest({
+    poolHandle,
+    request: getRevocRegDefRequest,
+  });
+  // console.log(getRevocRegDefResponse);
+
+  const ret = await indy.ledger.parseGetRevocRegDefResponse(getRevocRegDefResponse);
+
+  return {
+    id: ret[0],
+    revocRegDef: ret[1],
+  };
+}
+
 module.exports = {
   createDid,
   createSchema,
   createCredentialDefinition,
+  createRevocationRegistry,
   getDid,
   replaceVerkey,
   getSchema,
   getCredDef,
+  getRevocRegDef,
 };

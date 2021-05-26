@@ -14,6 +14,7 @@ describe('테스트', () => {
   let endorserVerkey;
   let schemaObj; // id, schema 필드
   let credDefObj; // id, credDef 필드
+  let revocRegDefObj; // id, revocRegDef 필드
 
   beforeAll(async () => {
     poolHandle = await indy.pool.getPoolHandle();
@@ -114,6 +115,38 @@ describe('테스트', () => {
         credDefId,
       });
       console.log(credDefObj);
+    });
+  });
+
+  describe('Revocation Registry 관련', () => {
+    let revocRegDefId;
+    test('Revocation Registry 생성', async () => {
+      revocRegDefId = await indyService.createRevocationRegistry(poolHandle, walletHandle, {
+        issuerDid: endorserDid,
+        credDefId: credDefObj.id,
+        naxCredNum: 1000,
+      });
+      console.log(revocRegDefId);
+    });
+
+    test('Revocation Registry 조회', async () => {
+      revocRegDefObj = await indyService.getRevocRegDef(poolHandle, walletHandle, {
+        issuerDid: endorserDid,
+        revocRegDefId,
+      });
+      console.log(revocRegDefObj);
+    });
+  });
+
+  describe('VC 관련', () => {
+    let credOffer;
+
+    test('issuer에서 credOffer 생성', async () => {
+      credOffer = await indy.anoncreds.issuerCreateCredentialOffer({
+        walletHandle,
+        credDefId: credDefObj.id,
+      });
+      console.log(credOffer);
     });
   });
 });
