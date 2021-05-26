@@ -87,6 +87,10 @@ async function parseGetRevocRegDefResponse(getRevocRegDefResponse) {
   return indy.parseGetRevocRegDefResponse(getRevocRegDefResponse);
 }
 
+async function parseGetNymResponse(getNymResponse) {
+  return indy.parseGetNymResponse(getNymResponse);
+}
+
 module.exports = {
   buildNymRequest,
   buildGetNymRequest,
@@ -102,4 +106,5 @@ module.exports = {
   buildGetRevocRegDefRequest,
   parseGetCredDefResponse,
   parseGetRevocRegDefResponse,
+  parseGetNymResponse,
 };
