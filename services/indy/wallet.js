@@ -14,6 +14,19 @@ async function createWallet(config, credentials) {
   );
 }
 
+/** 지갑 삭제 * */
+async function deleteWallet(config, credentials) {
+  const path = `${utils.getIndyStoragePath()}/wallets`;
+
+  await indy.deleteWallet(
+    {
+      storage_config: { path },
+      ...config,
+    },
+    credentials,
+  );
+}
+
 /** 생성한 지갑에 접근 * */
 async function openWallet(config, credentials) {
   const path = `${utils.getIndyStoragePath()}/wallets`;
@@ -33,6 +46,7 @@ async function closeWallet(walletHandle) {
 
 module.exports = {
   createWallet,
+  deleteWallet,
   openWallet,
   closeWallet,
 };
