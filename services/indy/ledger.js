@@ -91,6 +91,10 @@ async function parseGetNymResponse(getNymResponse) {
   return indy.parseGetNymResponse(getNymResponse);
 }
 
+async function parseGetSchemaResponse(getSchemaResponse) {
+  return indy.parseGetSchemaResponse(getSchemaResponse);
+}
+
 module.exports = {
   buildNymRequest,
   buildGetNymRequest,
@@ -107,4 +111,5 @@ module.exports = {
   parseGetCredDefResponse,
   parseGetRevocRegDefResponse,
   parseGetNymResponse,
+  parseGetSchemaResponse,
 };

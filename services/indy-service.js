@@ -27,31 +27,6 @@ async function createDid(poolHandle, walletHandle, options) {
   return [targetDid, verkey, nymResult];
 }
 
-// schema 생성부터 네트워크 전파까지
-async function createSchema(poolHandle, walletHandle, options) {
-  const { issuerDid, name, version, attrNames } = options;
-
-  const [id, schema] = await indy.anoncreds.issuerCreateSchema({
-    issuerDid,
-    name,
-    version,
-    attrNames,
-  });
-
-  const schemaRequest = await indy.ledger.buildSchemaRequest({
-    submitterDid: issuerDid,
-    data: schema,
-  });
-  const schemaResponse = await indy.ledger.signAndSubmitRequest({
-    poolHandle,
-    walletHandle,
-    submitterDid: issuerDid,
-    request: schemaRequest,
-  });
-
-  return [id, schemaResponse];
-}
-
 // 네트워크로부터 did 정보 가져오기
 async function getDid(poolHandle, options) {
   const { submitterDid, targetDid } = options;
@@ -98,9 +73,127 @@ async function replaceVerkey(poolHandle, walletHandle, options) {
   return nymResponse;
 }
 
+// schema 생성부터 네트워크 전파까지
+async function createSchema(poolHandle, walletHandle, options) {
+  const { issuerDid, name, version, attrNames } = options;
+
+  const [id, schema] = await indy.anoncreds.issuerCreateSchema({
+    issuerDid,
+    name,
+    version,
+    attrNames,
+  });
+  // console.log(id, '\n', schema);
+
+  const schemaRequest = await indy.ledger.buildSchemaRequest({
+    submitterDid: issuerDid,
+    data: schema,
+  });
+  // console.log(schemaRequest);
+
+  const schemaResponse = await indy.ledger.signAndSubmitRequest({
+    poolHandle,
+    walletHandle,
+    submitterDid: issuerDid,
+    request: schemaRequest,
+  });
+  // console.log(id, schemaResponse);
+
+  return id;
+}
+
+// 네트워크로부터 Schema 정보 가져오기
+async function getSchema(poolHandle, walletHandle, options) {
+  const { issuerDid, schemaId } = options;
+
+  const getSchemaRequest = await indy.ledger.buildGetSchemaRequest({
+    submitterDid: issuerDid,
+    id: schemaId,
+  });
+  // console.log(getSchemaRequest);
+
+  const getSchemaResponse = await indy.ledger.signAndSubmitRequest({
+    poolHandle,
+    walletHandle,
+    submitterDid: issuerDid,
+    request: getSchemaRequest,
+  });
+  // console.log(getSchemaResponse); // seqNo 필드가 null이 아닌 경우에 Schema가 존재하는 것인듯.
+
+  const ret = await indy.ledger.parseGetSchemaResponse(getSchemaResponse);
+
+  return {
+    id: ret[0],
+    schema: ret[1],
+  };
+}
+
+// credential definition 생성부터 전파까지
+async function createCredentialDefinition(poolHandle, walletHandle, options) {
+  const { schema, tag, issuerDid } = options;
+
+  const [credDefId, credDef] = await indy.anoncreds.issuerCreateAndStoreCredentialDef({
+    walletHandle,
+    issuerDid,
+    schema,
+    tag,
+    signatureType: 'CL',
+    config: {
+      support_revocation: true,
+    },
+  });
+  // console.log(credDefId, credDef);
+
+  const credDefRequest = await indy.ledger.buildCredDefRequest({
+    submitterDid: issuerDid,
+    data: credDef,
+  });
+  // console.log(credDefRequest);
+
+  const credDefResult = await indy.ledger.signAndSubmitRequest({
+    poolHandle,
+    walletHandle,
+    submitterDid: issuerDid,
+    request: credDefRequest,
+  });
+  // console.log(credDefResult);
+
+  return credDefId;
+}
+
+// 네트워크에서 credential definition 정보 가져오기
+async function getCredDef(poolHandle, walletHandle, options) {
+  const { issuerDid, credDefId } = options;
+
+  const getCreDefRequest = await indy.ledger.buildGetCredDefRequest({
+    submitterDid: issuerDid,
+    id: credDefId,
+  });
+  // console.log(getCreDefRequest);
+
+  const getCredDefResponse = await indy.ledger.signAndSubmitRequest({
+    poolHandle,
+    walletHandle,
+    submitterDid: issuerDid,
+    request: getCreDefRequest,
+  });
+  // console.log(getCredDefResponse);
+
+  const ret = await indy.ledger.parseGetCredDefResponse(getCredDefResponse);
+  console.log(ret);
+
+  return {
+    id: ret[0],
+    credDef: ret[1],
+  };
+}
+
 module.exports = {
   createDid,
   createSchema,
+  createCredentialDefinition,
   getDid,
   replaceVerkey,
+  getSchema,
+  getCredDef,
 };
