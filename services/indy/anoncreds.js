@@ -64,10 +64,15 @@ async function proverStoreCredential(options) {
   return indy.proverStoreCredential(walletHandle, credId, credReqMetadata, cred, credDef, revRegDef);
 }
 
+/** 지갑에 저장된 VC 확인 * */
 async function proverGetCredentials(options) {
   const { walletHandle, filter } = options;
 
   return indy.proverGetCredentials(walletHandle, filter);
+}
+
+async function generateNonce() {
+  return indy.generateNonce();
 }
 
 module.exports = {
@@ -81,4 +86,5 @@ module.exports = {
   proverCreateCredentialReq,
   proverStoreCredential,
   proverGetCredentials,
+  generateNonce,
 };
