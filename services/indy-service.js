@@ -1,9 +1,11 @@
 const indy = require('./indy');
 
 // Did 생성부터 네트워크 전파까지
+// walletHandle : 네트워크에 쓸 수 있는 권한을 갖는 DID가 저장된 지갑
+// targetWalletHandle : 현재 생성되는 DID가 저장될 위치
 async function createDid(poolHandle, walletHandle, options) {
-  const { submitterDid, alias, role } = options;
-  const [targetDid, verkey] = await indy.did.createAndStoreMyDid(walletHandle, {});
+  const { submitterDid, alias, role, targetWalletHandle } = options;
+  const [targetDid, verkey] = await indy.did.createAndStoreMyDid(targetWalletHandle, {});
 
   /** NYM 트랜잭션 생성 * */
   const nymRequest = await indy.ledger.buildNymRequest({
@@ -252,14 +254,59 @@ async function getRevocRegDef(poolHandle, walletHandle, options) {
   };
 }
 
+async function createVC(poolHandle, walletHandle, options) {
+  const { credOffer, credReq, revRegId, credValues } = options;
+
+  const tailsReaderHandle = await indy.blobStorage.openBlobStorageReader('default', {
+    base_dir: `${indy.utils.getIndyStoragePath()}/tails`,
+    uri_pattern: '',
+  });
+  // console.log('tailsReaderHandle \n', tailsReaderHandle);
+
+  const [cred, credRevocId, revocRegDelta] = await indy.anoncreds.issuerCreateCredential({
+    walletHandle,
+    credOffer,
+    credReq,
+    credValues,
+    revRegId,
+    blobStorageReaderHandle: tailsReaderHandle,
+  });
+  // console.log('cred\n', cred);
+  // console.log('credRevocId\n', credRevocId);
+  // console.log('revocRegDelta\n', revocRegDelta);
+
+  return {
+    cred,
+    credRevocId,
+    revocRegDelta,
+  };
+}
+
+async function storeVC(walletHandle, options) {
+  const { credReqMetadata, cred, credDef, revRegDef } = options;
+
+  const outCredId = await indy.anoncreds.proverStoreCredential({
+    walletHandle,
+    credId: undefined,
+    credReqMetadata,
+    cred,
+    credDef,
+    revRegDef,
+  });
+  // console.log(outCredId);
+  return outCredId;
+}
+
 module.exports = {
   createDid,
   createSchema,
   createCredentialDefinition,
   createRevocationRegistry,
+  createVC,
   getDid,
   replaceVerkey,
   getSchema,
   getCredDef,
   getRevocRegDef,
+  storeVC,
 };
