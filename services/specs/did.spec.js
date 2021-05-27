@@ -1,5 +1,6 @@
 const indy = require('../indy');
 const indyService = require('../indy-service');
+const proofRequestData = require('./proof-request-data');
 
 const stewardSeed = '000000000000000000000000Steward1';
 const config = { id: 'test_for_did_spec' };
@@ -139,7 +140,7 @@ describe('테스트', () => {
     });
   });
 
-  describe('VC 관련', () => {
+  describe('VC, VP 관련', () => {
     const proverConfig = { id: 'test_for_did_spec_prover' };
     const proverCredentials = { key: 'test_wallet_key' };
     let credOffer;
@@ -162,87 +163,97 @@ describe('테스트', () => {
       await indy.wallet.deleteWallet(proverConfig, proverCredentials);
     });
 
-    test('common user 권한으로 prover DID 생성', async () => {
-      [proverDid, proverVerkey] = await indyService.createDid(poolHandle, walletHandle, {
-        submitterDid: endorserDid,
-        alias: undefined,
-        role: undefined,
-        targetWalletHandle: proverWalletHandle,
+    describe('VC 관련', () => {
+      test('common user 권한으로 prover DID 생성', async () => {
+        [proverDid, proverVerkey] = await indyService.createDid(poolHandle, walletHandle, {
+          submitterDid: endorserDid,
+          alias: undefined,
+          role: undefined,
+          targetWalletHandle: proverWalletHandle,
+        });
+        console.log(proverDid, proverVerkey);
       });
-      console.log(proverDid, proverVerkey);
+
+      test('issuer에서 credOffer 생성', async () => {
+        credOffer = await indy.anoncreds.issuerCreateCredentialOffer({
+          walletHandle,
+          credDefId: credDefObj.id,
+        });
+        console.log(credOffer);
+      });
+
+      test('prover에서 link secret(master secret) 생성', async () => {
+        outMasterSecretId = await indy.anoncreds.proverCreateMasterSecret({
+          walletHandle: proverWalletHandle,
+        });
+        console.log('outMasterSecretId\n', outMasterSecretId);
+      });
+
+      test('prover에서 VC 발급 요청 데이터를 생성', async () => {
+        [credReq, credReqMetadata] = await indy.anoncreds.proverCreateCredentialReq({
+          walletHandle: proverWalletHandle,
+          proverDid,
+          credOffer,
+          credDef: credDefObj.credDef,
+          masterSecretId: outMasterSecretId,
+        });
+        console.log('credReq\n', credReq);
+        console.log('credReqMetadata\n', credReqMetadata);
+      });
+
+      test('issuer에서 VC 생성', async () => {
+        const credValues = {
+          age: {
+            raw: '20',
+            encoded: '20', // 인코딩을 인디에서 자체적으로 처리해주지 않음. IS-786?
+          },
+          sex: {
+            raw: '1',
+            encoded: '1',
+          },
+          height: {
+            raw: '190',
+            encoded: '190',
+          },
+          name: {
+            raw: '1',
+            encoded: '1',
+          },
+        };
+
+        vcObj = await indyService.createVC(poolHandle, walletHandle, {
+          credOffer,
+          credReq,
+          revRegId: revocRegDefObj.id,
+          credValues,
+        });
+        console.log(vcObj);
+      });
+
+      test('prover 지갑에 생성된 VC 저장', async () => {
+        outCredId = await indyService.storeVC(proverWalletHandle, {
+          credReqMetadata,
+          cred: vcObj.cred,
+          credDef: credDefObj.credDef,
+          revRegDef: revocRegDefObj.revocRegDef,
+        });
+        console.log(outCredId);
+      });
+
+      test('prover 지갑에 저장된 VC 확인', async () => {
+        const list = await indy.anoncreds.proverGetCredentials({
+          walletHandle: proverWalletHandle,
+        });
+        console.log(list);
+      });
     });
 
-    test('issuer에서 credOffer 생성', async () => {
-      credOffer = await indy.anoncreds.issuerCreateCredentialOffer({
-        walletHandle,
-        credDefId: credDefObj.id,
+    describe('VP 관련', () => {
+      let proofRequest;
+      test('VP 요청 생성', async () => {
+        proofRequest = await indyService.createProofReq(proofRequestData.proofReqTest);
+        console.log(proofRequest);
       });
-      console.log(credOffer);
-    });
-
-    test('prover에서 link secret(master secret) 생성', async () => {
-      outMasterSecretId = await indy.anoncreds.proverCreateMasterSecret({
-        walletHandle: proverWalletHandle,
-      });
-      console.log('outMasterSecretId\n', outMasterSecretId);
-    });
-
-    test('prover에서 VC 발급 요청 데이터를 생성', async () => {
-      [credReq, credReqMetadata] = await indy.anoncreds.proverCreateCredentialReq({
-        walletHandle: proverWalletHandle,
-        proverDid,
-        credOffer,
-        credDef: credDefObj.credDef,
-        masterSecretId: outMasterSecretId,
-      });
-      console.log('credReq\n', credReq);
-      console.log('credReqMetadata\n', credReqMetadata);
-    });
-
-    test('issuer에서 VC 생성', async () => {
-      const credValues = {
-        age: {
-          raw: '20',
-          encoded: '20', // 인코딩을 인디에서 자체적으로 처리해주지 않음. IS-786?
-        },
-        sex: {
-          raw: '1',
-          encoded: '1',
-        },
-        height: {
-          raw: '190',
-          encoded: '190',
-        },
-        name: {
-          raw: '1',
-          encoded: '1',
-        },
-      };
-
-      vcObj = await indyService.createVC(poolHandle, walletHandle, {
-        credOffer,
-        credReq,
-        revRegId: revocRegDefObj.id,
-        credValues,
-      });
-      console.log(vcObj);
-    });
-
-    test('prover 지갑에 생성된 VC 저장', async () => {
-      outCredId = await indyService.storeVC(proverWalletHandle, {
-        credReqMetadata,
-        cred: vcObj.cred,
-        credDef: credDefObj.credDef,
-        revRegDef: revocRegDefObj.revocRegDef,
-      });
-      console.log(outCredId);
-    });
-
-    test('prover 지갑에 저장된 VC 확인', async () => {
-      const list = await indy.anoncreds.proverGetCredentials({
-        walletHandle: proverWalletHandle,
-      });
-      console.log(list);
     });
   });
 });

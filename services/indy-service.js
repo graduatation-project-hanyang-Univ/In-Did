@@ -297,6 +297,15 @@ async function storeVC(walletHandle, options) {
   return outCredId;
 }
 
+async function createProofReq(proofRequest) {
+  const nonce = await indy.anoncreds.generateNonce();
+
+  return {
+    ...proofRequest,
+    nonce,
+  };
+}
+
 module.exports = {
   createDid,
   createSchema,
@@ -309,4 +318,5 @@ module.exports = {
   getCredDef,
   getRevocRegDef,
   storeVC,
+  createProofReq,
 };
