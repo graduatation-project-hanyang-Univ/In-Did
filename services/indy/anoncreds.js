@@ -75,6 +75,24 @@ async function generateNonce() {
   return indy.generateNonce();
 }
 
+async function proverSearchCredentialsForProofReq(options) {
+  const { walletHandle, proofRequest, extraQuery } = options;
+
+  return indy.proverSearchCredentialsForProofReq(walletHandle, proofRequest, extraQuery);
+}
+
+async function proverFetchCredentialsForProofReq(options) {
+  const { searchHandle, itemReferent, count } = options;
+
+  return indy.proverFetchCredentialsForProofReq(searchHandle, itemReferent, count);
+}
+
+async function proverCloseCredentialsSearchForProofReq(options) {
+  const { searchHandle } = options;
+
+  return indy.proverCloseCredentialsSearchForProofReq(searchHandle);
+}
+
 module.exports = {
   issuerCreateSchema,
   issuerCreateAndStoreCredentialDef,
@@ -86,5 +104,8 @@ module.exports = {
   proverCreateCredentialReq,
   proverStoreCredential,
   proverGetCredentials,
+  proverSearchCredentialsForProofReq,
+  proverFetchCredentialsForProofReq,
+  proverCloseCredentialsSearchForProofReq,
   generateNonce,
 };

@@ -1,5 +1,6 @@
 const proofReqTest = {
   name: 'test-proof-req',
+  version: '1.0',
   requested_attributes: {
     attr1_referent: { name: 'name' },
   },
@@ -10,10 +11,10 @@ const proofReqTest = {
       p_value: 18,
     },
   },
-  non_revoked: {
-    from: 80,
-    to: 100,
-  },
+  // non_revoked: {
+  //   from: 80,
+  //   to: 100,
+  // },
 };
 
 module.exports = {
