@@ -19,8 +19,18 @@ async function closePoolLedger(poolHandle) {
   return indy.closePoolLedger(poolHandle);
 }
 
+async function deletePoolLedgerConfig() {
+  await indy.deletePoolLedgerConfig(process.env.POOL_NAME);
+}
+
+async function listPools() {
+  return indy.listPools();
+}
+
 module.exports = {
   createGenesisLedger,
+  deletePoolLedgerConfig,
   getPoolHandle,
   closePoolLedger,
+  listPools,
 };
