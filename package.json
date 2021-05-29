@@ -28,6 +28,6 @@
     "prettier": "^2.2.1"
   },
   "jest": {
-    "testTimeout": 100000
+    "testTimeout": 1000000
   }
 }
