@@ -250,9 +250,15 @@ describe('테스트', () => {
 
     describe('VP 관련', () => {
       let proofRequest;
+      let extractedCreds;
       test('VP 요청 생성', async () => {
         proofRequest = await indyService.createProofReq(proofRequestData.proofReqTest);
         console.log(proofRequest);
+      });
+
+      test('proof request에 해당되는 VC  확보', async () => {
+        extractedCreds = await indyService.fetchAllCredentials(proverWalletHandle, proofRequest);
+        console.log(extractedCreds);
       });
     });
   });
