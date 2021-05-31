@@ -306,41 +306,6 @@ async function createProofReq(proofRequest) {
   };
 }
 
-async function fetchAllCredentials(walletHandle, proofRequest) {
-  const searchHandle = await indy.anoncreds.proverSearchCredentialsForProofReq({
-    walletHandle,
-    proofRequest,
-    extraQuery: undefined,
-  });
-
-  const promises = [];
-  let keys = [];
-  keys = keys.concat(Object.keys(proofRequest.requested_attributes));
-  keys = keys.concat(Object.keys(proofRequest.requested_predicates));
-
-  keys.forEach((key) => {
-    promises.push(
-      indy.anoncreds.proverFetchCredentialsForProofReq({
-        searchHandle,
-        itemReferent: key,
-        count: 1,
-      }),
-    );
-  });
-
-  const tempRet = await Promise.all(promises);
-  const ret = [];
-  // eslint-disable-next-line no-restricted-syntax
-  for (const arr of tempRet) {
-    ret.push(arr[0]);
-  }
-
-  await indy.anoncreds.proverCloseCredentialsSearchForProofReq({
-    searchHandle,
-  });
-
-  return ret;
-}
 
 module.exports = {
   createDid,
@@ -355,5 +320,4 @@ module.exports = {
   getRevocRegDef,
   storeVC,
   createProofReq,
-  fetchAllCredentials,
 };

@@ -79,6 +79,12 @@ async function buildGetRevocRegDefRequest(options) {
   return indy.buildGetRevocRegDefRequest(submitterDid, id);
 }
 
+async function buildGetRevocRegDeltaRequest(options) {
+  const { submitterDid, revocRegDefId, from, to } = options;
+
+  return indy.buildGetRevocRegDeltaRequest(submitterDid, revocRegDefId, from, to);
+}
+
 async function parseGetCredDefResponse(getCredDefResponse) {
   return indy.parseGetCredDefResponse(getCredDefResponse);
 }
@@ -108,6 +114,7 @@ module.exports = {
   buildRevocRegEntryRequest,
   buildGetCredDefRequest,
   buildGetRevocRegDefRequest,
+  buildGetRevocRegDeltaRequest,
   parseGetCredDefResponse,
   parseGetRevocRegDefResponse,
   parseGetNymResponse,

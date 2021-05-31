@@ -93,6 +93,32 @@ async function proverCloseCredentialsSearchForProofReq(options) {
   return indy.proverCloseCredentialsSearchForProofReq(searchHandle);
 }
 
+// 특정 timestamp 에 해당하는 시간에 대한 폐기 정보 생성
+async function createRevocationState(options) {
+  const { blobStorageReaderHandle, revRegDef, revRegDelta, timestamp, credRevId } = options;
+
+  return indy.createRevocationState(blobStorageReaderHandle, revRegDef, revRegDelta, timestamp, credRevId);
+}
+
+// VP 생성
+async function proverCreateProof(options) {
+  const { walletHandle, proofReq, requestedCredentials, masterSecretName, schemas, credentialDefs, revStates } = options;
+
+  return indy.proverCreateProof(walletHandle, proofReq, requestedCredentials, masterSecretName, schemas, credentialDefs, revStates);
+}
+
+async function proverGetCredentialsForProofReq(options) {
+  const { walletHandle, proofRequest } = options;
+
+  return indy.proverGetCredentialsForProofReq(walletHandle, proofRequest);
+}
+
+async function verifierVerifyProof(options) {
+  const { proofRequest, proof, schemas, credentialDefsJsons, revRegDefs, revRegs } = options;
+
+  return indy.verifierVerifyProof(proofRequest, proof, schemas, credentialDefsJsons, revRegDefs, revRegs);
+}
+
 module.exports = {
   issuerCreateSchema,
   issuerCreateAndStoreCredentialDef,
@@ -107,5 +133,9 @@ module.exports = {
   proverSearchCredentialsForProofReq,
   proverFetchCredentialsForProofReq,
   proverCloseCredentialsSearchForProofReq,
+  proverCreateProof,
+  proverGetCredentialsForProofReq,
   generateNonce,
+  createRevocationState,
+  verifierVerifyProof,
 };
