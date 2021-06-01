@@ -2,6 +2,7 @@ const mkdirp = require('mkdirp');
 const fs = require('fs');
 const os = require('os');
 const appRootPath = require('app-root-path').path;
+const blobStorage = require('./blob-storage');
 require('dotenv').config();
 
 async function mkdir(filePath) {
@@ -50,9 +51,25 @@ function getIndyStoragePath() {
   return `${appRootPath}/indy-ledgers`;
 }
 
+async function getTailsWriterHandle() {
+  return blobStorage.openBlobStorageWriter('default', {
+    base_dir: `${getIndyStoragePath()}/tails`,
+    uri_pattern: '',
+  });
+}
+
+async function getTailsReaderHandle() {
+  return blobStorage.openBlobStorageReader('default', {
+    base_dir: `${getIndyStoragePath()}/tails`,
+    uri_pattern: '',
+  });
+}
+
 module.exports = {
   getPoolGenesisTxnPath,
   getPathToIndyClientHome,
   getCurrentTimeInSeconds,
   getIndyStoragePath,
+  getTailsWriterHandle,
+  getTailsReaderHandle,
 };

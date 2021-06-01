@@ -163,7 +163,7 @@ describe('테스트', () => {
       await indy.wallet.deleteWallet(proverConfig, proverCredentials);
     });
 
-    describe('VC 관련', () => {
+    describe('VC 생성 및 저장', () => {
       test('common user 권한으로 prover DID 생성', async () => {
         [proverDid, proverVerkey] = await indyService.createDid(poolHandle, walletHandle, {
           submitterDid: endorserDid,
@@ -222,6 +222,7 @@ describe('테스트', () => {
         };
 
         vcObj = await indyService.createVC(poolHandle, walletHandle, {
+          issuerDid: endorserDid,
           credOffer,
           credReq,
           revRegId: revocRegDefObj.id,
@@ -318,6 +319,16 @@ describe('테스트', () => {
           revRegs: {},
         });
         console.log(isValid);
+      });
+    });
+
+    describe('VC 폐기', () => {
+      test('issuer에서 VC 폐기', async () => {
+        await indyService.revokeVC(poolHandle, walletHandle, {
+          submitterDid: endorserDid,
+          revRegId: revocRegDefObj.id,
+          credRevocId: vcObj.credRevocId,
+        });
       });
     });
   });
