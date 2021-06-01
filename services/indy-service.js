@@ -190,19 +190,36 @@ async function getCredDef(poolHandle, walletHandle, options) {
   };
 }
 
+async function updateRevocRegEntry(poolHandle, walletHandle, options) {
+  const { submitterDid, revocRegDefId, value } = options;
+
+  const revocRegEntryRequest = await indy.ledger.buildRevocRegEntryRequest({
+    submitterDid,
+    revocRegDefId,
+    revDefType: 'CL_ACCUM',
+    value,
+  });
+  console.log(revocRegEntryRequest);
+
+  const revocRegEntryResponse = await indy.ledger.signAndSubmitRequest({
+    poolHandle,
+    walletHandle,
+    submitterDid,
+    request: revocRegEntryRequest,
+  });
+  console.log('revocRegEntryResponse\n', revocRegEntryResponse);
+}
+
 async function createRevocationRegistry(poolHandle, walletHandle, options) {
   const { issuerDid, credDefId, maxCredNum } = options;
 
-  const tailsWriterHandle = await indy.blobStorage.openBlobStorageWriter('default', {
-    base_dir: `${indy.utils.getIndyStoragePath()}/tails`,
-    uri_pattern: '',
-  });
+  const tailsWriterHandle = await indy.utils.getTailsWriterHandle();
   // console.log('tailsWriterHandle \n', tailsWriterHandle);
 
   const [revocRegId, revocRegDef, revocRegEntry] = await indy.anoncreds.issuerCreateAndStoreRevocReg({
     walletHandle,
     issuerDid,
-    revocDefType: null,
+    revocDefType: 'CL_ACCUM',
     tag: 'test_revocation_registry',
     credDefId,
     config: {
@@ -227,6 +244,12 @@ async function createRevocationRegistry(poolHandle, walletHandle, options) {
     request: revocRegDefRequest,
   });
   // console.log('revocRegDefResponse\n', revocRegDefResponse);
+
+  await updateRevocRegEntry(poolHandle, walletHandle, {
+    submitterDid: issuerDid,
+    revocRegDefId: revocRegId,
+    value: revocRegEntry,
+  });
 
   return revocRegId;
 }
@@ -255,12 +278,9 @@ async function getRevocRegDef(poolHandle, walletHandle, options) {
 }
 
 async function createVC(poolHandle, walletHandle, options) {
-  const { credOffer, credReq, revRegId, credValues } = options;
+  const { issuerDid, credOffer, credReq, revRegId, credValues } = options;
 
-  const tailsReaderHandle = await indy.blobStorage.openBlobStorageReader('default', {
-    base_dir: `${indy.utils.getIndyStoragePath()}/tails`,
-    uri_pattern: '',
-  });
+  const tailsReaderHandle = await indy.utils.getTailsReaderHandle();
   // console.log('tailsReaderHandle \n', tailsReaderHandle);
 
   const [cred, credRevocId, revocRegDelta] = await indy.anoncreds.issuerCreateCredential({
@@ -274,6 +294,12 @@ async function createVC(poolHandle, walletHandle, options) {
   // console.log('cred\n', cred);
   // console.log('credRevocId\n', credRevocId);
   // console.log('revocRegDelta\n', revocRegDelta);
+
+  await updateRevocRegEntry(poolHandle, walletHandle, {
+    submitterDid: issuerDid,
+    revocRegDefId: revRegId,
+    value: revocRegDelta,
+  });
 
   return {
     cred,
@@ -306,6 +332,24 @@ async function createProofReq(proofRequest) {
   };
 }
 
+// VC 폐기 과정과 네트워크 전파 - issuer에서 진행
+async function revokeVC(poolHandle, walletHandle, options) {
+  const { submitterDid, revRegId, credRevocId } = options;
+
+  const revocRegDelta = await indy.anoncreds.issuerRevokeCredential({
+    walletHandle,
+    blobStorageReaderHandle: await indy.utils.getTailsReaderHandle(),
+    revRegId,
+    credRevocId,
+  });
+  console.log(revocRegDelta);
+
+  await updateRevocRegEntry(poolHandle, walletHandle, {
+    submitterDid,
+    revocRegDefId: revRegId,
+    value: revocRegDelta,
+  });
+}
 
 module.exports = {
   createDid,
@@ -319,5 +363,6 @@ module.exports = {
   getCredDef,
   getRevocRegDef,
   storeVC,
+  revokeVC,
   createProofReq,
 };
