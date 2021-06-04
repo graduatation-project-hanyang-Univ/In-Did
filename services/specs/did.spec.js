@@ -330,6 +330,86 @@ describe('테스트', () => {
           credRevocId: vcObj.credRevocId,
         });
       });
+
+      test('VC 폐기 이후 prover 지갑에 저장된 VC 확인 - 그대로 존재', async () => {
+        const list = await indy.anoncreds.proverGetCredentials({
+          walletHandle: proverWalletHandle,
+        });
+        console.log(list);
+      });
+    });
+
+    describe('VP 관련 - VC 폐기 이후에 proof request에 폐기 정보 관련 검증 정보가 포함되지 않은 경우 접근 가능', () => {
+      let proofReq;
+      let extractedCreds;
+      let proof;
+      let schemas;
+      let credentialDefs;
+
+      beforeAll(async () => {
+        schemas = {
+          [schemaObj.id]: schemaObj.schema,
+        };
+        credentialDefs = {
+          [credDefObj.id]: credDefObj.credDef,
+        };
+      });
+
+      test('VP 요청 생성', async () => {
+        proofReq = await indyService.createProofReq(proofRequestData.proofReqTest);
+        console.log(proofReq);
+      });
+
+      test('prover에서 proof request에 해당되는 VC  확보', async () => {
+        extractedCreds = await indy.anoncreds.proverGetCredentialsForProofReq({
+          walletHandle: proverWalletHandle,
+          proofRequest: proofReq,
+        });
+        console.log(extractedCreds);
+      });
+
+      test('prover에서 VP 생성', async () => {
+        const credForAttr1 = extractedCreds.attrs.attr1_referent;
+        const { referent } = credForAttr1[0].cred_info;
+
+        const requestedCredentials = {
+          self_attested_attributes: {},
+          requested_attributes: {
+            attr1_referent: {
+              cred_id: referent,
+              revealed: true,
+            },
+          },
+          requested_predicates: {
+            predicate1_referent: {
+              cred_id: referent,
+            },
+          },
+        };
+
+        proof = await indy.anoncreds.proverCreateProof({
+          walletHandle: proverWalletHandle,
+          proofReq,
+          requestedCredentials,
+          masterSecretName: outMasterSecretId,
+          schemas,
+          credentialDefs,
+          revStates: {},
+        });
+        console.log(proof);
+      });
+
+      test('verifier 에서 VP 검증', async () => {
+        const isValid = await indy.anoncreds.verifierVerifyProof({
+          proofRequest: proofReq,
+          proof,
+          schemas,
+          credentialDefsJsons: credentialDefs,
+          revRegDefs: {},
+          revRegs: {},
+        });
+        console.log(isValid);
+      });
     });
   });
 });
